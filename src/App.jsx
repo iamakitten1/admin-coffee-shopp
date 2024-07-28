@@ -1,52 +1,71 @@
 import { useEffect, useState } from "react"
-import { NewTodoForm } from "./CoffeItem"
+import { CoffeeItemForm } from "./CoffeeItemForm"
 import "./App.css"
-import { TodoList } from "./TodoList"
+import { ItemList } from "./ItemList"
+
+
 
 export default function App() {
-  const [todos, setTodos] = useState(() => {
-    const localValue = localStorage.getItem("ITEMS")
-    if (localValue == null) return []
-
-    return JSON.parse(localValue)
-  })
-
-  useEffect(() => {
-    localStorage.setItem("ITEMS", JSON.stringify(todos))
-  }, [todos])
-
-  function addTodo(title) {
-    setTodos(currentTodos => {
-      return [
-        ...currentTodos,
-        { id: crypto.randomUUID(), title, completed: false },
-      ]
-    })
-  }
-
-  function toggleTodo(id, completed) {
-    setTodos(currentTodos => {
-      return currentTodos.map(todo => {
-        if (todo.id === id) {
-          return { ...todo, completed }
-        }
-
-        return todo
-      })
-    })
-  }
-
-  function deleteTodo(id) {
-    setTodos(currentTodos => {
-      return currentTodos.filter(todo => todo.id !== id)
-    })
-  }
-
+  const[ items, setItems] = useState ([])
+  const addItem = (formData) => { setItems([...items, formData])}
+  
   return (
     <>
-      <NewTodoForm onSubmit={addTodo} />
-      <h1 className="header">Todo List</h1>
-      <TodoList todos={todos} toggleTodo={toggleTodo} deleteTodo={deleteTodo} />
+      <CoffeeItemForm onSubmit={addItem} />
+      <h1 className="header"> Coffee Items </h1>
+      <ItemList items={items}   />
     </>
   )
+  {
+    const [taskTitle, setTaskTitle] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
+  
+    const createTask = async () => {
+      const apiUrl = "https://crudapi.co.uk/api/v1/task";
+      const apiKey = "5cHvC0XfvliDWRh8NRPoPR20hdvbOBOCuxShio-lH2TFSEVZbg";
+  
+      setIsLoading(true);
+      setError(null);
+  
+      try {
+        const response = await fetch(apiUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify([{ title: taskTitle, completed: false }]),
+        });
+  
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+  
+        const data = await response.json();
+        console.log("Task created:", data);
+      } catch (error) {
+        setError(error.message);
+        console.error("Error:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+  
+    return (
+      <div>
+        <input
+          type="text"
+          value={taskTitle}
+          onChange={(e) => setTaskTitle(e.target.value)}
+          placeholder="Enter task title"
+        />
+        <button onClick={createTask} disabled={isLoading}>
+          {isLoading ? "Creating..." : "Create Task"}
+        </button>
+        {error && <p style={{ color: "red" }}>{error}</p>}
+      </div>
+    );
+  }
+  
 }
