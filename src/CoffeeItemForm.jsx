@@ -1,67 +1,57 @@
-import { useState } from "react"
-
-
-
+import { useState } from "react";
 
 export function CoffeeItemForm({ onSubmit }) {
-    const[ formData, setFormData] = useState ({
-      id: '',
-      title: '',
-      price: '',
-      description: '',
-    });
+  const [formData, setFormData] = useState({
+    title: '',
+    price: '',
+    description: '',
+  });
+
   const handleChange = (e) => {
-    const { id,  value } = e.target;
+    const { id, value } = e.target;
     setFormData({
       ...formData,
       [id]: value,
     });
   };
-  
 
-  function handleSubmit(e) {
-    e.preventDefault ()
+  const handleSubmit = (e) => {
+    e.preventDefault();
     onSubmit(formData);
     setFormData({
-      id: '',
       title: '',
-      price:  '',
-      description: '',})
-  }
+      price: '',
+      description: '',
+    });
+  };
+
   return (
     <form onSubmit={handleSubmit} className="new-item-form">
       <div className="form-row">
-        <label htmlFor="item"> Coffee </label>
+        <label htmlFor="title">Coffee</label>
         <input
-        placeholder="ID"
-          value={formData.id}
-          onChange={ handleChange}
-          type="text"
-          id="id"  
-        />
-        <input
-        placeholder="TITLE"
+          placeholder="Title"
           value={formData.title}
-          onChange={ handleChange}
+          onChange={handleChange}
           type="text"
-          id="title" 
+          id="title"
         />
-         <input
-         placeholder="PRICE"
+        <input
+          placeholder="Price"
           value={formData.price}
-          onChange={ handleChange}
+          onChange={handleChange}
           type="text"
-          id="price" 
+          id="price"
         />
-         <input
-         placeholder="DESCRIPTION"
+        <input
+          placeholder="Description"
           value={formData.description}
-          onChange={ handleChange}
+          onChange={handleChange}
           type="text"
-          id="description" 
+          id="description"
         />
       </div>
       <button className="btn">Add</button>
     </form>
-  )
+  );
 }

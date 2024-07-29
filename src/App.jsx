@@ -1,5 +1,3 @@
-
-
 import { useState, useEffect } from "react";
 import { CoffeeItemForm } from "./CoffeeItemForm";
 import "./App.css";
@@ -10,10 +8,9 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const apiUrl = "https://crudapi.co.uk/api/v1/item";
-  const apiKey = "5cHvC0XfvliDWRh8NRPoPR20hdvbOBOCuxShio-lH2TFSEVZbg"; // Replace with your actual API key
+  const apiUrl = 'https://crudapi.co.uk/api/v1/task'; // Use environment variable
+  const apiKey = '0JpKH6HRlJ8eEQ91GY9_xbEn5_IMQ_t9gnGN1FOaz7AuVMWjpg'; // Use environment variable
 
-  // Fetch items from the API
   useEffect(() => {
     const fetchItems = async () => {
       setIsLoading(true);
@@ -24,11 +21,20 @@ export default function App() {
             Authorization: `Bearer ${apiKey}`,
           },
         });
+
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
+
         const data = await response.json();
-        setItems(data);
+        console.log("Fetched data:", data);
+
+        if (Array.isArray(data.items)) {
+          setItems(data.items);
+        } else {
+          setItems([]);
+          console.warn("Expected items array, but got:", data);
+        }
       } catch (error) {
         setError(error.message);
       } finally {
@@ -38,9 +44,10 @@ export default function App() {
     fetchItems();
   }, []);
 
-  // Add a new item
   const addItem = async (formData) => {
     try {
+      console.log("Sending data:", JSON.stringify(formData));
+
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
@@ -49,17 +56,33 @@ export default function App() {
         },
         body: JSON.stringify(formData),
       });
+
       if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+        let errorMessage = `HTTP error! Status: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage += `. ${errorData.message || "Unknown error"}`;
+          console.error("API Error Details:", errorData);
+        } catch {
+          errorMessage += ". Unknown error (no details provided)";
+        }
+        throw new Error(errorMessage);
       }
-      const newItem = await response.json();
-      setItems([...items, newItem]);
+
+      const data = await response.json();
+      console.log("Received data:", data);
+
+      if (data) {
+        setItems([...items, data]);
+      } else {
+        throw new Error("Unexpected response format");
+      }
     } catch (error) {
+      console.error("Error adding item:", error);
       setError(error.message);
     }
   };
 
-  // Delete an item
   const deleteItem = async (id) => {
     try {
       const response = await fetch(`${apiUrl}/${id}`, {
@@ -68,9 +91,11 @@ export default function App() {
           Authorization: `Bearer ${apiKey}`,
         },
       });
+
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
+
       setItems(items.filter((item) => item.id !== id));
     } catch (error) {
       setError(error.message);
@@ -90,5 +115,3 @@ export default function App() {
     </>
   );
 }
-
-  
